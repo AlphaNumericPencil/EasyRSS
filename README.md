@@ -6,7 +6,7 @@ This document lays out the requirements for the development of an RSS Reader Pla
 
 # Functional Requirements
 ## Feed Display:
-The plasmoid should contain a hidden list, which is made visible upon clicking the message, "Currently showing ______ feeds". This message is held by a placeholder label. The list will comprise feeds that belong to a selected and named "preset".
+The plasmoid should contain a hidden list, which is made visible upon clicking the message, "Currently showing [preset]". The list will comprise feeds that belong to a selected and named "preset" and be contained by the dimensions of the application.
 
 ## Feed Presets:
 Users should be able to create these presets by adding feeds to them from an interface that shows all the feeds that the user has added to the plasmoid.
