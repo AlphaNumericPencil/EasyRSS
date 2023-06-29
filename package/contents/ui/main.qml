@@ -113,8 +113,8 @@ Item {
                         id: contentItem
 
                         width: parent.width
-                        spacing: 500 // Added this line to include spacing between items
-                        height: 500 
+                        spacing: 175
+                        height: titleText.implicitHeight + descriptionText.implicitHeight // Set ColumnLayout height based on the implicit height of the two Label's 
 
                         Repeater {
                             id: repeater
@@ -130,7 +130,8 @@ Item {
 
                                     PlasmaComponents.Label {
                                         id: titleText
-
+                                        font.bold: true
+                                        font.pointSize: 14
                                         text: model.title
                                         width: parent.width // Set width to the parent's width
                                         wrapMode: Text.WordWrap // Set word wrapping
