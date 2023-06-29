@@ -50,13 +50,14 @@ Item {
         Layout.minimumWidth: label.implicitWidth
         Layout.minimumHeight: label.implicitHeight
         Layout.preferredWidth: 1000 * PlasmaCore.Units.devicePixelRatio
-        Layout.preferredHeight: 500 * PlasmaCore.Units.devicePixelRatio
+        Layout.preferredHeight: 1000 * PlasmaCore.Units.devicePixelRatio
 
         ColumnLayout {
             id: columnLayout
 
+            height: parent.height
             anchors.fill: parent
-            spacing: 0
+            spacing: 10
 
             RowLayout {
                 id: addFeedRow
@@ -100,22 +101,60 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredHeight: parent.height - addFeedRow.height
+                spacing: 10
 
-                delegate: Kirigami.Card {
+                delegate: Item {
                     property var feedModel: model ? model.feedModel : null
+
                     width: parent.width
-                    implicitHeight: titleText.height + descriptionText.height + 10 // adjust as needed
+                    height: contentItem.implicitHeight // Set Item height based on the ColumnLayout's implicit height
 
-                    PlasmaComponents.Label {
-                        id: titleText
-                        text: feedModel && feedModel.status === XmlListModel.Ready ? feedModel.get(0).title : 'Loading...'
+                    ColumnLayout {
+                        id: contentItem
+
+                        width: parent.width
+                        spacing: 500 // Added this line to include spacing between items
+                        height: 500 
+
+                        Repeater {
+                            id: repeater
+
+                            model: feedModel && feedModel.status === XmlListModel.Ready ? feedModel : []
+
+                            delegate: Kirigami.Card {
+                                width: parent.width
+
+                                Column {
+                                    width: parent.width
+                                    height: parent.height
+
+                                    PlasmaComponents.Label {
+                                        id: titleText
+
+                                        text: model.title
+                                        width: parent.width // Set width to the parent's width
+                                        wrapMode: Text.WordWrap // Set word wrapping
+                                    }
+
+                                    PlasmaComponents.Label {
+                                        id: descriptionText
+
+                                        text: model.description
+                                        width: parent.width // Set width to the parent's width
+                                        wrapMode: Text.WordWrap // Set word wrapping
+                                        verticalAlignment: Text.AlignVCenter // Set vertical alignment
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
                     }
 
-                    PlasmaComponents.Label {
-                        id: descriptionText
-                        text: feedModel && feedModel.status === XmlListModel.Ready ? feedModel.get(0).description : 'Loading...'
-                    }
                 }
+
             }
 
             Text {
@@ -126,6 +165,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 visible: feedsModel.count === 0
             }
+
         }
 
         Popup {
