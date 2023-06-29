@@ -101,34 +101,21 @@ Item {
                 Layout.fillHeight: true
                 Layout.preferredHeight: parent.height - addFeedRow.height
 
-                delegate: Item {
+                delegate: Kirigami.Card {
                     property var feedModel: model ? model.feedModel : null
-
                     width: parent.width
-                    height: widget.itemHeight
+                    implicitHeight: titleText.height + descriptionText.height + 10 // adjust as needed
 
-                    ListView {
-                        model: feedModel
-
-                        delegate: Column {
-                            Text {
-                                text: feedModel && feedModel.status === XmlListModel.Ready ? title : 'Loading...'
-                                width: parent.width
-                                height: widget.itemHeight
-                            }
-
-                            Text {
-                                text: feedModel && feedModel.status === XmlListModel.Ready ? description : 'Loading...'
-                                width: parent.width
-                                height: widget.itemHeight
-                            }
-
-                        }
-
+                    PlasmaComponents.Label {
+                        id: titleText
+                        text: feedModel && feedModel.status === XmlListModel.Ready ? feedModel.get(0).title : 'Loading...'
                     }
 
+                    PlasmaComponents.Label {
+                        id: descriptionText
+                        text: feedModel && feedModel.status === XmlListModel.Ready ? feedModel.get(0).description : 'Loading...'
+                    }
                 }
-
             }
 
             Text {
@@ -139,7 +126,6 @@ Item {
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 visible: feedsModel.count === 0
             }
-
         }
 
         Popup {
