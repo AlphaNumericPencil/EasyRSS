@@ -15,6 +15,13 @@ Item {
 
     property int itemHeight: 10 // Define the height for each item in the list
 
+    function addPreset(presetFeeds, presetName) {
+        presetsModel.append({
+            "presetFeeds": presetFeeds,
+            "presetName": presetName
+        });
+    }
+
     Plasmoid.icon: 'starred-symbolic'
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
 
@@ -23,109 +30,200 @@ Item {
         id: feedsModel
     }
 
-Plasmoid.fullRepresentation: Item {
-    id: fullRepresentation
-
-    function addFeed(feedUrl) {
-        var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
-        feedsModel.append({"feedModel": feed});
+    ListModel {
+        id: presetsModel
     }
 
-    Layout.minimumWidth: label.implicitWidth
-    Layout.minimumHeight: label.implicitHeight
-    Layout.preferredWidth: 1000 * PlasmaCore.Units.devicePixelRatio
-    Layout.preferredHeight: 500 * PlasmaCore.Units.devicePixelRatio
+    Plasmoid.fullRepresentation: Item {
+        id: fullRepresentation
 
-    ColumnLayout {
-        id: columnLayout
-        anchors.fill: parent
-        spacing: 0
-
-        RowLayout {
-            id: addFeedRow
-            Layout.fillWidth: true
-
-            PlasmaComponents.Button {
-                id: addFeedButton
-
-                text: i18n("Add new Feed")
-                onClicked: {
-                    console.log("addFeedButton clicked"); // Log a message when the button is clicked
-                    newRSS.visible = true;
-                }
-            }
-
-            PlasmaComponents.Label {
-                id: label
-
-                text: feedsModel.count > 0 ? i18n("Currently showing %1 feeds", feedsModel.count) : i18n("Add a feed!")
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-            }
+        function addFeed(feedUrl, feedName) {
+            var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
+            console.log("Adding feed:", feedUrl, feedName, feed);
+            feedsModel.append({
+                "feedModel": feed,
+                "feedName": feedName
+            });
+            console.log("FeedsModel count:", feedsModel.count);
         }
 
-ListView {
-    id: feedsListView
-    model: feedsModel.get(0).feedModel // Access the feedModel directly from the ListModel
-    Layout.fillWidth: true
-    Layout.fillHeight: true
+        Layout.minimumWidth: label.implicitWidth
+        Layout.minimumHeight: label.implicitHeight
+        Layout.preferredWidth: 1000 * PlasmaCore.Units.devicePixelRatio
+        Layout.preferredHeight: 500 * PlasmaCore.Units.devicePixelRatio
 
-    delegate: Item {
-        width: parent.width
-        height: widget.itemHeight * model.count // Update to model.count
+        ColumnLayout {
+            id: columnLayout
 
-        Repeater {
-            model: model // Bind to the feedModel directly
-
-            delegate: Text {
-                text: model.title + "\n" + model.description
-                width: parent.width
-                height: widget.itemHeight
-            }
-        }
-
-        Text {
-            text: feedsModel.count === 0 ? i18n("Add a feed!") : "" // Show "Add a feed!" message if the list is empty
-            font.bold: true
-            font.pointSize: 14
-            color: "black" // Provide a fallback color
-            anchors.centerIn: parent
-            visible: feedsModel.count === 0
-        }
-    }
-}
-    }
-
-    Popup {
-        id: newRSS
-
-        height: 75
-        width: 500
-        x: (parent.width - width) / 2 // This will position the Popup in the center of the parent Item horizontally
-        y: (parent.height - height) / 2 // This will position the Popup in the center of the parent Item vertically
-        visible: false
-
-        RowLayout {
             anchors.fill: parent
             spacing: 0
 
-            TextField {
-                id: dialogUrlField
+            RowLayout {
+                id: addFeedRow
 
-                placeholderText: "Enter RSS feed URL"
-                Layout.preferredWidth: parent.width * 0.7
-            }
+                Layout.fillWidth: true
 
-            PlasmaComponents.Button {
-                id: addUrlButton
+                PlasmaComponents.Button {
+                    id: addFeedButton
 
-                text: "Add"
-                onClicked: {
-                    fullRepresentation.addFeed(dialogUrlField.text); // Add a new feed whenthe button is clicked
-                    newRSS.visible = false;
+                    text: i18n("Add new Feed")
+                    onClicked: {
+                        console.log("addFeedButton clicked"); // Log a message when the button is clicked
+                        newRSS.visible = true;
+                    }
                 }
+
+                PlasmaComponents.Label {
+                    id: label
+
+                    text: feedsModel.count > 0 ? i18n("Currently showing %1 feeds", feedsModel.count) : i18n("Add a feed!")
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.fillWidth: true
+                }
+
+                ComboBox {
+                    id: presetsComboBox
+
+                    model: presetsModel
+                    textRole: "presetName"
+                    onCurrentIndexChanged: {
+                        feedsListView.model = model[presetsComboBox.currentIndex].presetFeeds;
+                    }
+                }
+
             }
+
+            ListView {
+                id: feedsListView
+
+                model: feedsModel
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: parent.height - addFeedRow.height
+
+                delegate: Item {
+                    property var feedModel: model ? model.feedModel : null
+
+                    width: parent.width
+                    height: widget.itemHeight
+
+                    ListView {
+                        model: feedModel
+
+                        delegate: Column {
+                            Text {
+                                text: feedModel && feedModel.status === XmlListModel.Ready ? title : 'Loading...'
+                                width: parent.width
+                                height: widget.itemHeight
+                            }
+
+                            Text {
+                                text: feedModel && feedModel.status === XmlListModel.Ready ? description : 'Loading...'
+                                width: parent.width
+                                height: widget.itemHeight
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            Text {
+                text: feedsModel.count === 0 ? i18n("Add a feed!") : "" // Show "Add a feed!" message if the list is empty
+                font.bold: true
+                font.pointSize: 14
+                color: "black" // Provide a fallback color
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                visible: feedsModel.count === 0
+            }
+
         }
+
+        Popup {
+            id: newRSS
+
+            height: 100
+            width: 500
+            x: (parent.width - width) / 2 // This will position the Popup in the center of the parent Item horizontally
+            y: (parent.height - height) / 2 // This will position the Popup in the center of the parent Item vertically
+            visible: false
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                ColumnLayout {
+                    TextField {
+                        //Layout.preferredWidth
+
+                        id: dialogNameField
+
+                        placeholderText: "Enter Feed Name"
+                    }
+
+                    TextField {
+                        //Layout.preferredWidth: parent.width * 0.7
+
+                        id: dialogUrlField
+
+                        placeholderText: "Enter RSS feed URL"
+                    }
+
+                }
+
+                PlasmaComponents.Button {
+                    id: addUrlButton
+
+                    text: "Add"
+                    onClicked: {
+                        fullRepresentation.addFeed(dialogUrlField.text, dialogNameField.text); // Add a new feed when the button is clicked
+                        newRSS.visible = false;
+                    }
+                }
+
+            }
+
+        }
+
+        Popup {
+            // ... Dimensions and position ...
+            //haha funny new comment
+            id: newPreset
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                ComboBox {
+                    id: presetFeedsComboBox
+
+                    model: feedsModel
+                    textRole: "feedName"
+                }
+
+                TextField {
+                    id: presetNameField
+
+                    placeholderText: "Enter Preset Name"
+                }
+
+                PlasmaComponents.Button {
+                    id: addPresetButton
+
+                    text: "Add"
+                    onClicked: {
+                        fullRepresentation.addPreset(presetFeedsComboBox.selectedItems, presetNameField.text);
+                        newPreset.visible = false;
+                    }
+                }
+
+            }
+
+        }
+
     }
-}
+
 }
