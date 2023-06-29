@@ -82,11 +82,20 @@ Item {
                     Layout.fillWidth: true
                 }
 
+                PlasmaComponents.Button {
+                    id: addPresetButton
+
+                    text: "+"
+                    onClicked: {
+                        newPreset.visible = true;
+                    }
+                }
+
                 ComboBox {
                     id: presetsComboBox
 
                     model: presetsModel
-                    textRole: "presetName"
+                    textRole: i18n("presetName")
                     onCurrentIndexChanged: {
                         feedsListView.model = model[presetsComboBox.currentIndex].presetFeeds;
                     }
@@ -114,7 +123,7 @@ Item {
 
                         width: parent.width
                         spacing: 175
-                        height: titleText.implicitHeight + descriptionText.implicitHeight // Set ColumnLayout height based on the implicit height of the two Label's 
+                        height: titleText.implicitHeight + descriptionText.implicitHeight // Set ColumnLayout height based on the implicit height of the two Label's
 
                         Repeater {
                             id: repeater
@@ -130,6 +139,7 @@ Item {
 
                                     PlasmaComponents.Label {
                                         id: titleText
+
                                         font.bold: true
                                         font.pointSize: 14
                                         text: model.title
@@ -215,41 +225,79 @@ Item {
 
         }
 
-        Popup {
-            // ... Dimensions and position ...
-            //haha funny new comment
-            id: newPreset
+Popup {
+    id: newPreset
+    x: (parent.width - width) / 2 // This will position the Popup in the center of the parent Item horizontally
+    y: (parent.height - height) / 2 // This will position the Popup in the center of the parent Item vertically
+    visible: false
 
-            RowLayout {
-                anchors.fill: parent
-                spacing: 0
+    ColumnLayout {
+    spacing:100
 
-                ComboBox {
-                    id: presetFeedsComboBox
+        PlasmaComponents.Label {
+            id: newPresetLabel
+            
 
-                    model: feedsModel
-                    textRole: "feedName"
-                }
+            text: "Create a new preset by selecting your desired feeds, and entering a name."
+            width: parent.width // Set width to the parent's width
+            verticalAlignment: Text.AlignVCenter
+        }
 
-                TextField {
-                    id: presetNameField
+        // List of checkboxes for each feed
+        ListView {
+            id: feedCheckboxesList
+            model: feedsModel
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-                    placeholderText: "Enter Preset Name"
-                }
+            delegate: RowLayout {
+                spacing: 500
+                CheckBox {
+                    id: feedCheckbox
+                    text: model.feedName
+                    checked: false // by default, none of the feeds are included in the new preset
 
-                PlasmaComponents.Button {
-                    id: addPresetButton
-
-                    text: "Add"
-                    onClicked: {
-                        fullRepresentation.addPreset(presetFeedsComboBox.selectedItems, presetNameField.text);
-                        newPreset.visible = false;
+                    onCheckedChanged: {
+                        // Add or remove the feed from the preset when the checkbox is checked or unchecked
+                        if (checked) {
+                            presetFeedsList.append(feedModel);
+                        } else {
+                            for (var i = 0; i < presetFeedsList.length; i++) {
+                                if (presetFeedsList[i] === feedModel) {
+                                    presetFeedsList.splice(i, 1);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
+            }
+        }
 
+        RowLayout {
+            id: presetRow
+
+            TextField {
+                id: presetNameField
+
+                placeholderText: "Enter Preset Name"
+            }
+
+            PlasmaComponents.Button {
+                id: confirmAddPresetButton
+
+                text: "Add"
+                onClicked: {
+                    fullRepresentation.addPreset(presetFeedsList, presetNameField.text);
+                    newPreset.visible = false;
+                }
             }
 
         }
+
+    }
+
+}
 
     }
 
