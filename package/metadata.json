@@ -12,7 +12,7 @@
         "Id": "org.kde.plasma.EasyRSS",
         "Name": "Easy RSS",
         "Version": "1",
-        "Website": "https://github.com/Zren/plasmoid-helloworldplugin"
+        "Website": "https://github.com/AlphaNumericPencil/EasyRSS"
     },
     "X-Plasma-API": "declarativeappletscript",
     "X-Plasma-MainScript": "ui/main.qml",
