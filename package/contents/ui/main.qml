@@ -37,38 +37,65 @@ Item {
     Plasmoid.fullRepresentation: Item {
         id: fullRepresentation
 
-        function addFeed(feedUrl, feedName) {
-            //if the feedUrl is atom, handle it differently
-            if (feedUrl.endsWith(".atom")) {
-                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/feed/entry"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "summary/string()" } }', widget);
-                console.log("Adding feed:", feedUrl, feedName, feed);
-                feedsModel.append({
-                    "feedModel": feed,
-                    "feedName": feedName
-                });
-                console.log("FeedsModel count:", feedsModel.count);
-                return;
-            }
-            else if (feedUrl.endsWith(".rss")) {
-                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
-                console.log("Adding feed:", feedUrl, feedName, feed);
-                feedsModel.append({
-                    "feedModel": feed,
-                    "feedName": feedName
-                });
-                console.log("FeedsModel count:", feedsModel.count);
-                return;
-            }
-            else {
-                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
-                console.log("Adding feed:", feedUrl, feedName, feed);
-                feedsModel.append({
-                    "feedModel": feed,
-                    "feedName": feedName
-                });
-                console.log("FeedsModel count:", feedsModel.count);
-                return;
-            }
+ function addFeed(feedUrl, feedName) {
+    // if the feedUrl is atom, handle it differently
+    if (feedUrl.endsWith(".atom")) {
+        var feed = Qt.createQmlObject(
+            'import QtQuick.XmlListModel 2.0; XmlListModel { \
+                source: "' + feedUrl + '"; \
+                query: "/feed/entry"; \
+                XmlRole { name: "title"; query: "title/string()" } \
+                XmlRole { name: "link"; query: "link/@href/string()" } \
+                XmlRole { name: "description"; query: "summary/string()" } \
+            }',
+            widget
+        );
+        console.log("Adding feed:", feedUrl, feedName, feed);
+        feedsModel.append({
+            "feedModel": feed,
+            "feedName": feedName
+        });
+        console.log("FeedsModel count:", feedsModel.count);
+        return;
+    }
+    else if (feedUrl.endsWith(".rss")) {
+        var feed = Qt.createQmlObject(
+            'import QtQuick.XmlListModel 2.0; XmlListModel { \
+                source: "' + feedUrl + '"; \
+                query: "/rss/channel/item"; \
+                XmlRole { name: "title"; query: "title/string()" } \
+                XmlRole { name: "link"; query: "link/string()" } \
+                XmlRole { name: "description"; query: "description/string()" } \
+            }',
+            widget
+        );
+        console.log("Adding feed:", feedUrl, feedName, feed);
+        feedsModel.append({
+            "feedModel": feed,
+            "feedName": feedName
+        });
+        console.log("FeedsModel count:", feedsModel.count);
+        return;
+    }
+    else {
+        var feed = Qt.createQmlObject(
+            'import QtQuick.XmlListModel 2.0; XmlListModel { \
+                source: "' + feedUrl + '"; \
+                query: "/rss/channel/item"; \
+                XmlRole { name: "title"; query: "title/string()" } \
+                XmlRole { name: "link"; query: "link/string()" } \
+                XmlRole { name: "description"; query: "description/string()" } \
+            }',
+            widget
+        );
+        console.log("Adding feed:", feedUrl, feedName, feed);
+        feedsModel.append({
+            "feedModel": feed,
+            "feedName": feedName
+        });
+        console.log("FeedsModel count:", feedsModel.count);
+        return;
+    }
             // var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
             // console.log("Adding feed:", feedUrl, feedName, feed);
             // feedsModel.append({
@@ -146,15 +173,16 @@ Item {
                 delegate: Item {
                     property var feedModel: model ? model.feedModel : null
 
-                    width: parent.width
+                    width: parent.width //feedsListView.view.width TypeError: Cannot readproperty 'width' of undefined
                     height: contentItem.implicitHeight // Set Item height based on the ColumnLayout's implicit height
 
                     ColumnLayout {
                         id: contentItem
 
                         width: parent.width
+                        height: parent.height
                         spacing: 175
-                        height: titleText.implicitHeight + descriptionText.implicitHeight // Set ColumnLayout height based on the implicit height of the two Label's
+                        //height: titleText.implicitHeight + descriptionText.implicitHeight // Set ColumnLayout height based on the implicit height of the two labels. Does not work since they are declared later.
 
                         Repeater {
                             id: repeater
@@ -181,6 +209,7 @@ Item {
                                     PlasmaComponents.Label {
                                         id: descriptionText
 
+                                        height: implicitHeight
                                         text: model.description
                                         width: parent.width // Set width to the parent's width
                                         wrapMode: Text.WordWrap // Set word wrapping
