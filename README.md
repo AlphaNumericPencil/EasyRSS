@@ -1,6 +1,10 @@
 # EasyRSS
-## A helpful little RSS Reader plasmoid (non-functional, early development)
-# RSS Reader Plasmoid Requirements Document
+### A helpful little RSS Reader plasmoid (non-functional, early development)
+Test instructions:
+1. Download
+2. run plasmoidviewer -a ~/path/to/easyRSS/package
+
+# Requirements Document
 # Introduction
 This document lays out the requirements for the development of an RSS Reader Plasmoid for the KDE desktop environment. The Plasmoid is intended to provide a user-friendly way for users to read and manage RSS feeds directly from their KDE desktop.
 
