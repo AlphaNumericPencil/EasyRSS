@@ -177,20 +177,12 @@ Item {
                                 MouseArea {
                                     id: cardMouseArea
 
-                                    property bool isScrolling: false
-                                    property real startX
-
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     hoverEnabled: true
-                                    onPressed: {
-                                        isScrolling = false;
-                                        startX = mouse.x;
-                                    }
-                                    onPositionChanged: {
-                                        if (Math.abs(mouse.x - startX) > 10)
-                                            isScrolling = true;
-
+                                    onClicked: {
+                                        // Open the URL of the article when the card is clicked
+                                        Qt.openUrlExternally(model.link);
                                     }
                                 }
 
