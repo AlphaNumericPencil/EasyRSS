@@ -172,7 +172,13 @@ Item {
 
                             delegate: Kirigami.Card {
                                 width: parent.width
+                                height: parent.height
                                 visible: feedModel.status === XmlListModel.Ready // Only display the card when the feed model is ready
+                                onClicked: {
+                                        // Open the URL of the article when the card is clicked
+                                        Qt.openUrlExternally(model.link);
+                                    }
+                                    showClickFeedback: true
 
                                 MouseArea {
                                     id: cardMouseArea
@@ -194,17 +200,41 @@ Item {
                                         //spacing: 10
 
                                         id: titleText
+                                        MouseArea {
+                                    id: cardMouseArea2
+
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        // Open the URL of the article when the card is clicked
+                                        Qt.openUrlExternally(model.link);
+                                    }
+                                }
+
 
                                         font.bold: true
                                         font.pointSize: 14
                                         text: model.title
                                         width: parent.width // Set width to the parent's width
                                         wrapMode: Text.WordWrap // Set word wrapping
+                                        
                                     }
 
                                     PlasmaComponents.Label {
                                         //verticalAlignment: Text.AlignVCenter // Set vertical alignment
                                         //spacing: 10
+MouseArea {
+                                    id: cardMouseArea3
+
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        // Open the URL of the article when the card is clicked
+                                        Qt.openUrlExternally(model.link);
+                                    }
+                                }
 
                                         id: descriptionText
 
