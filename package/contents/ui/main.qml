@@ -11,9 +11,9 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.plasmoid 2.0
 
 Item {
-    id: widget
+    //property int itemHeight: 10 // Define the height for each item in the list
 
-    property int itemHeight: 10 // Define the height for each item in the list
+    id: widget
 
     function addPreset(presetFeeds, presetName) {
         presetsModel.append({
@@ -37,72 +37,54 @@ Item {
     Plasmoid.fullRepresentation: Item {
         id: fullRepresentation
 
- function addFeed(feedUrl, feedName) {
-    // if the feedUrl is atom, handle it differently
-    if (feedUrl.endsWith(".atom")) {
-        var feed = Qt.createQmlObject(
-            'import QtQuick.XmlListModel 2.0; XmlListModel { \
-                source: "' + feedUrl + '"; \
-                query: "/feed/entry"; \
-                XmlRole { name: "title"; query: "title/string()" } \
-                XmlRole { name: "link"; query: "link/@href/string()" } \
-                XmlRole { name: "description"; query: "summary/string()" } \
-            }',
-            widget
-        );
-        console.log("Adding feed:", feedUrl, feedName, feed);
-        feedsModel.append({
-            "feedModel": feed,
-            "feedName": feedName
-        });
-        console.log("FeedsModel count:", feedsModel.count);
-        return;
-    }
-    else if (feedUrl.endsWith(".rss")) {
-        var feed = Qt.createQmlObject(
-            'import QtQuick.XmlListModel 2.0; XmlListModel { \
+        function addFeed(feedUrl, feedName) {
+            // if the feedUrl is atom, handle it differently
+            if (feedUrl.endsWith(".atom")) {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
+        source: "' + feedUrl + '"; \
+        query: "/feed/entry"; \
+        XmlRole { name: "title"; query: "title/string()" } \
+        XmlRole { name: "link"; query: "link/@href/string()" } \
+        XmlRole { name: "description"; query: "summary/string()" } \
+    }', widget);
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return ;
+            } else if (feedUrl.endsWith(".rss")) {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
                 source: "' + feedUrl + '"; \
                 query: "/rss/channel/item"; \
                 XmlRole { name: "title"; query: "title/string()" } \
                 XmlRole { name: "link"; query: "link/string()" } \
                 XmlRole { name: "description"; query: "description/string()" } \
-            }',
-            widget
-        );
-        console.log("Adding feed:", feedUrl, feedName, feed);
-        feedsModel.append({
-            "feedModel": feed,
-            "feedName": feedName
-        });
-        console.log("FeedsModel count:", feedsModel.count);
-        return;
-    }
-    else {
-        var feed = Qt.createQmlObject(
-            'import QtQuick.XmlListModel 2.0; XmlListModel { \
+            }', widget);
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return ;
+            } else {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
                 source: "' + feedUrl + '"; \
                 query: "/rss/channel/item"; \
                 XmlRole { name: "title"; query: "title/string()" } \
                 XmlRole { name: "link"; query: "link/string()" } \
                 XmlRole { name: "description"; query: "description/string()" } \
-            }',
-            widget
-        );
-        console.log("Adding feed:", feedUrl, feedName, feed);
-        feedsModel.append({
-            "feedModel": feed,
-            "feedName": feedName
-        });
-        console.log("FeedsModel count:", feedsModel.count);
-        return;
-    }
-            // var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
-            // console.log("Adding feed:", feedUrl, feedName, feed);
-            // feedsModel.append({
-            //     "feedModel": feed,
-            //     "feedName": feedName
-            // });
-            // console.log("FeedsModel count:", feedsModel.count);
+            }', widget);
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return ;
+            }
         }
 
         Layout.minimumWidth: label.implicitWidth
@@ -173,8 +155,8 @@ Item {
                 delegate: Item {
                     property var feedModel: model ? model.feedModel : null
 
-                    width: parent.width //feedsListView.view.width TypeError: Cannot readproperty 'width' of undefined
-                    height: contentItem.implicitHeight // Set Item height based on the ColumnLayout's implicit height
+                    width: parent.width
+                    height: contentItem.implicitHeight
 
                     ColumnLayout {
                         id: contentItem
@@ -182,21 +164,43 @@ Item {
                         width: parent.width
                         height: parent.height
                         spacing: 175
-                        //height: titleText.implicitHeight + descriptionText.implicitHeight // Set ColumnLayout height based on the implicit height of the two labels. Does not work since they are declared later.
 
                         Repeater {
                             id: repeater
 
-                            model: feedModel && feedModel.status === XmlListModel.Ready ? feedModel : []
+                            model: feedModel
 
                             delegate: Kirigami.Card {
                                 width: parent.width
+                                visible: feedModel.status === XmlListModel.Ready // Only display the card when the feed model is ready
+
+                                MouseArea {
+                                    id: cardMouseArea
+
+                                    property bool isScrolling: false
+                                    property real startX
+
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
+                                    onPressed: {
+                                        isScrolling = false;
+                                        startX = mouse.x;
+                                    }
+                                    onPositionChanged: {
+                                        if (Math.abs(mouse.x - startX) > 10)
+                                            isScrolling = true;
+
+                                    }
+                                }
 
                                 Column {
                                     width: parent.width
                                     height: parent.height
 
                                     PlasmaComponents.Label {
+                                        //spacing: 10
+
                                         id: titleText
 
                                         font.bold: true
@@ -207,13 +211,15 @@ Item {
                                     }
 
                                     PlasmaComponents.Label {
+                                        //verticalAlignment: Text.AlignVCenter // Set vertical alignment
+                                        //spacing: 10
+
                                         id: descriptionText
 
                                         height: implicitHeight
                                         text: model.description
                                         width: parent.width // Set width to the parent's width
                                         wrapMode: Text.WordWrap // Set word wrapping
-                                        verticalAlignment: Text.AlignVCenter // Set vertical alignment
                                     }
 
                                 }
@@ -285,79 +291,83 @@ Item {
 
         }
 
-Popup {
-    id: newPreset
-    x: (parent.width - width) / 2 // This will position the Popup in the center of the parent Item horizontally
-    y: (parent.height - height) / 2 // This will position the Popup in the center of the parent Item vertically
-    visible: false
+        Popup {
+            id: newPreset
 
-    ColumnLayout {
-    spacing:100
+            x: (parent.width - width) / 2 // This will position the Popup in the center of the parent Item horizontally
+            y: (parent.height - height) / 2 // This will position the Popup in the center of the parent Item vertically
+            visible: false
 
-        PlasmaComponents.Label {
-            id: newPresetLabel
-            
+            ColumnLayout {
+                spacing: 100
 
-            text: "Create a new preset by selecting your desired feeds, and entering a name."
-            width: parent.width // Set width to the parent's width
-            verticalAlignment: Text.AlignVCenter
-        }
+                PlasmaComponents.Label {
+                    id: newPresetLabel
 
-        // List of checkboxes for each feed
-        ListView {
-            id: feedCheckboxesList
-            model: feedsModel
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+                    text: "Create a new preset by selecting your desired feeds, and entering a name."
+                    width: parent.width // Set width to the parent's width
+                    verticalAlignment: Text.AlignVCenter
+                }
 
-            delegate: RowLayout {
-                spacing: 500
-                CheckBox {
-                    id: feedCheckbox
-                    text: model.feedName
-                    checked: false // by default, none of the feeds are included in the new preset
+                // List of checkboxes for each feed
+                ListView {
+                    id: feedCheckboxesList
 
-                    onCheckedChanged: {
-                        // Add or remove the feed from the preset when the checkbox is checked or unchecked
-                        if (checked) {
-                            presetFeedsList.append(feedModel);
-                        } else {
-                            for (var i = 0; i < presetFeedsList.length; i++) {
-                                if (presetFeedsList[i] === feedModel) {
-                                    presetFeedsList.splice(i, 1);
-                                    break;
+                    model: feedsModel
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    delegate: RowLayout {
+                        spacing: 500
+
+                        CheckBox {
+                            id: feedCheckbox
+
+                            text: model.feedName
+                            checked: false // by default, none of the feeds are included in the new preset
+                            onCheckedChanged: {
+                                // Add or remove the feed from the preset when the checkbox is checked or unchecked
+                                if (checked) {
+                                    presetFeedsList.append(feedModel);
+                                } else {
+                                    for (var i = 0; i < presetFeedsList.length; i++) {
+                                        if (presetFeedsList[i] === feedModel) {
+                                            presetFeedsList.splice(i, 1);
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
+
                     }
+
                 }
-            }
-        }
 
-        RowLayout {
-            id: presetRow
+                RowLayout {
+                    id: presetRow
 
-            TextField {
-                id: presetNameField
+                    TextField {
+                        id: presetNameField
 
-                placeholderText: "Enter Preset Name"
-            }
+                        placeholderText: "Enter Preset Name"
+                    }
 
-            PlasmaComponents.Button {
-                id: confirmAddPresetButton
+                    PlasmaComponents.Button {
+                        id: confirmAddPresetButton
 
-                text: "Add"
-                onClicked: {
-                    fullRepresentation.addPreset(presetFeedsList, presetNameField.text);
-                    newPreset.visible = false;
+                        text: "Add"
+                        onClicked: {
+                            fullRepresentation.addPreset(presetFeedsList, presetNameField.text);
+                            newPreset.visible = false;
+                        }
+                    }
+
                 }
+
             }
 
         }
-
-    }
-
-}
 
     }
 
