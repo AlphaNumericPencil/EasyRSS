@@ -38,13 +38,44 @@ Item {
         id: fullRepresentation
 
         function addFeed(feedUrl, feedName) {
-            var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
-            console.log("Adding feed:", feedUrl, feedName, feed);
-            feedsModel.append({
-                "feedModel": feed,
-                "feedName": feedName
-            });
-            console.log("FeedsModel count:", feedsModel.count);
+            //if the feedUrl is atom, handle it differently
+            if (feedUrl.endsWith(".atom")) {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/feed/entry"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "summary/string()" } }', widget);
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return;
+            }
+            else if (feedUrl.endsWith(".rss")) {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return;
+            }
+            else {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return;
+            }
+            // var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { source: "' + feedUrl + '"; query: "/rss/channel/item"; XmlRole { name: "title"; query: "title/string()" } XmlRole { name: "link"; query: "link/string()" } XmlRole { name: "description"; query: "description/string()" } }', widget);
+            // console.log("Adding feed:", feedUrl, feedName, feed);
+            // feedsModel.append({
+            //     "feedModel": feed,
+            //     "feedName": feedName
+            // });
+            // console.log("FeedsModel count:", feedsModel.count);
         }
 
         Layout.minimumWidth: label.implicitWidth
