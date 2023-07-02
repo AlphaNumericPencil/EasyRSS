@@ -15,30 +15,29 @@ Item {
 
     id: widget
 
-    property var presetsModel: ListModel {} // A list to store the presets
-    property var presetFeedsList: [] // Initialize as an empty JavaScript array
+    property var presetsModel // A list to store the presets
+    property var presetFeedsList: []
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
 
-function isAtomFeed(feedUrl) {
-    var request = new XMLHttpRequest();
-    request.open("GET", feedUrl, false);
-    request.send();
-    var xmlContent = request.responseText;
-    return xmlContent.includes('xmlns="' + atomNamespace + '"');
-}
-
-
-function addPreset(presetFeeds, presetName) {
-    var presetFeedModels = [];
-    for (var i = 0; i < presetFeeds.length; i++) {
-        presetFeedModels.push(presetFeeds[i].feedModel);
+    function isAtomFeed(feedUrl) {
+        var request = new XMLHttpRequest();
+        request.open("GET", feedUrl, false);
+        request.send();
+        var xmlContent = request.responseText;
+        return xmlContent.includes('xmlns="' + atomNamespace + '"');
     }
-    presetsModel.append({
-        "presetFeeds": presetFeedModels,
-        "presetName": presetName
-    });
-}
+
+    function addPreset(presetFeeds, presetName) {
+        var presetFeedModels = [];
+        for (var i = 0; i < presetFeeds.length; i++) {
+            presetFeedModels.push(presetFeeds[i].feedModel);
+        }
+        presetsModel.append({
+            "presetFeeds": presetFeedModels,
+            "presetName": presetName
+        });
+    }
 
     Plasmoid.icon: 'starred-symbolic'
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
@@ -52,34 +51,42 @@ function addPreset(presetFeeds, presetName) {
         id: presetsModel
     }
 
+    presetsModel: ListModel {
+    }
+    // Initialize as an empty JavaScript array
+
     Plasmoid.fullRepresentation: Item {
         id: fullRepresentation
 
         function addFeed(feedUrl, feedName) {
             // if the feedUrl is atom, handle it differently
-                if (isAtomFeed(feedUrl)) {
-        var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
+            if (isAtomFeed(feedUrl)) {
+                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
             source: "' + feedUrl + '"; \
             namespaceDeclarations: "declare default element namespace \'' + atomNamespace + '\';"; \
             query: "/feed/entry"; \
             XmlRole { name: "title"; query: "title/string()" } \
             XmlRole { name: "link"; query: "link/@href/string()" } \
             XmlRole { name: "description"; query: "summary/string()" } \
+            XmlRole { name: "date"; query: "published/string()" } \
+            XmlRole { name: "author"; query: "author/name/string()" } \
         }', widget);
-        console.log("Adding feed:", feedUrl, feedName, feed);
-        feedsModel.append({
-            "feedModel": feed,
-            "feedName": feedName
-        });
-        console.log("FeedsModel count:", feedsModel.count);
-        return ;
-    } else if (feedUrl.endsWith(".rss")) {
+                console.log("Adding feed:", feedUrl, feedName, feed);
+                feedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", feedsModel.count);
+                return ;
+            } else if (feedUrl.endsWith(".rss")) {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
                 source: "' + feedUrl + '"; \
                 query: "/rss/channel/item"; \
                 XmlRole { name: "title"; query: "title/string()" } \
                 XmlRole { name: "link"; query: "link/string()" } \
                 XmlRole { name: "description"; query: "description/string()" } \
+                XmlRole { name: "date"; query: "pubDate/string()" } \
+                XmlRole { name: "author"; query: "author/string()" } \
             }', widget);
                 console.log("Adding feed:", feedUrl, feedName, feed);
                 feedsModel.append({
@@ -150,19 +157,20 @@ function addPreset(presetFeeds, presetName) {
                     }
                 }
 
-ComboBox {
-    id: presetsComboBox
-    height: addFeedButton.height
-    model: presetsModel
-    textRole: "presetName"
-    onCurrentIndexChanged: {
-        if (currentIndex >= 0 && currentIndex < presetsModel.count) {
-            var preset = presetsModel.get(currentIndex);
-            var presetFeeds = preset.presetFeeds;
-            feedsListView.model = presetFeeds;
-        }
-    }
-}
+                ComboBox {
+                    id: presetsComboBox
+
+                    height: addFeedButton.height
+                    model: presetsModel
+                    textRole: "presetName"
+                    onCurrentIndexChanged: {
+                        if (currentIndex >= 0 && currentIndex < presetsModel.count) {
+                            var preset = presetsModel.get(currentIndex);
+                            var presetFeeds = preset.presetFeeds;
+                            feedsListView.model = presetFeeds;
+                        }
+                    }
+                }
 
             }
 
@@ -197,10 +205,6 @@ ComboBox {
                                 width: parent.width
                                 height: parent.height
                                 visible: feedModel.status === XmlListModel.Ready // Only display the card when the feed model is ready
-                                onClicked: {
-                                    // Open the URL of the article when the card is clicked
-                                    Qt.openUrlExternally(model.link);
-                                }
                                 showClickFeedback: true
 
                                 MouseArea {
@@ -219,29 +223,46 @@ ComboBox {
                                     width: parent.width
                                     height: parent.height
 
-                                    PlasmaComponents.Label {
-                                        //spacing is an invalid property for Label
+                                    RowLayout {
+                                        PlasmaComponents.Label {
+                                            //spacing is an invalid property for Label
 
-                                        id: titleText
+                                            id: titleText
 
-                                        font.bold: true
-                                        font.pointSize: 14
-                                        text: model.title
-                                        width: parent.width // Set width to the parent's width
-                                        wrapMode: Text.WordWrap // Set word wrapping
+                                            font.bold: true
+                                            font.pointSize: 14
+                                            text: model.title
+                                            width: parent.width // Set width to the parent's width
+                                            wrapMode: Text.WordWrap // Set word wrapping
 
-                                        MouseArea {
-                                            id: cardMouseArea2
+                                            MouseArea {
+                                                id: cardMouseArea2
 
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            hoverEnabled: true
-                                            onClicked: {
-                                                // Open the URL of the article when the card is clicked
-                                                Qt.openUrlExternally(model.link);
+                                                anchors.fill: parent
+                                                cursorShape: Qt.PointingHandCursor
+                                                hoverEnabled: true
+                                                onClicked: {
+                                                    // Open the URL of the article when the card is clicked
+                                                    Qt.openUrlExternally(model.link);
+                                                }
                                             }
+
                                         }
 
+                                        PlasmaComponents.Label {
+                                            id: authorText
+
+                                            text: model.author ? model.author : "No author given"
+                                            width: parent.width
+                                        }
+
+                                    }
+
+                                    PlasmaComponents.Label {
+                                        id: dateText
+
+                                        text: model.date ? model.date : "No date given"
+                                        width: parent.width
                                     }
 
                                     PlasmaComponents.Label {
@@ -376,10 +397,13 @@ ComboBox {
                             onCheckedChanged: {
                                 // Add or remove the feed from the preset when the checkbox is checked or unchecked
                                 if (checked) {
-                                    presetFeedsList.push(feedModel);
+                                    presetFeedsList.push({
+                                        "feedModel": feedModel,
+                                        "feedName": model.feedName
+                                    });
                                 } else {
                                     for (var i = 0; i < presetFeedsList.length; i++) {
-                                        if (presetFeedsList[i] === feedModel) {
+                                        if (presetFeedsList[i].feedModel === feedModel) {
                                             presetFeedsList.splice(i, 1);
                                             break;
                                         }
