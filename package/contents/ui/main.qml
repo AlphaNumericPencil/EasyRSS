@@ -15,16 +15,20 @@ Item {
 
     id: widget
 
-    property var presetsModel: [] // A list to store the presets
+    property var presetsModel: ListModel {} // A list to store the presets
     property var presetFeedsList: [] // Initialize as an empty JavaScript array
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
 
-    function addPreset(presetFeeds, presetName) {
-        presetsModel.insert(0, {
-            "presetFeeds": presetFeeds,
-            "presetName": presetName
-        });
+function addPreset(presetFeeds, presetName) {
+    var presetFeedModels = [];
+    for (var i = 0; i < presetFeeds.length; i++) {
+        presetFeedModels.push(presetFeeds[i].feedModel);
     }
+    presetsModel.append({
+        "presetFeeds": presetFeedModels,
+        "presetName": presetName
+    });
+}
 
     Plasmoid.icon: 'starred-symbolic'
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
@@ -135,14 +139,16 @@ Item {
                     }
                 }
 
-                ComboBox {
+ComboBox {
     id: presetsComboBox
     height: addFeedButton.height
     model: presetsModel
     textRole: "presetName"
     onCurrentIndexChanged: {
         if (currentIndex >= 0 && currentIndex < presetsModel.count) {
-            feedsListView.model = presetsModel.get(currentIndex).presetFeeds;
+            var preset = presetsModel.get(currentIndex);
+            var presetFeeds = preset.presetFeeds;
+            feedsListView.model = presetFeeds;
         }
     }
 }
