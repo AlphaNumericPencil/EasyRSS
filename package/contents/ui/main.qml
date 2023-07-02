@@ -15,8 +15,12 @@ Item {
 
     id: widget
 
+    property var presetsModel: [] // A list to store the presets
+    property var presetFeedsList: [] // Initialize as an empty JavaScript array
+    property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
+
     function addPreset(presetFeeds, presetName) {
-        presetsModel.append({
+        presetsModel.insert(0, {
             "presetFeeds": presetFeeds,
             "presetName": presetName
         });
@@ -134,10 +138,11 @@ Item {
                 ComboBox {
                     id: presetsComboBox
 
+                    height: addFeedButton.height
                     model: presetsModel
                     textRole: i18n("presetName")
                     onCurrentIndexChanged: {
-                        feedsListView.model = model[presetsComboBox.currentIndex].presetFeeds;
+                        feedsListView.model = model[currentIndex].presetFeeds;
                     }
                 }
 
@@ -175,10 +180,10 @@ Item {
                                 height: parent.height
                                 visible: feedModel.status === XmlListModel.Ready // Only display the card when the feed model is ready
                                 onClicked: {
-                                        // Open the URL of the article when the card is clicked
-                                        Qt.openUrlExternally(model.link);
-                                    }
-                                    showClickFeedback: true
+                                    // Open the URL of the article when the card is clicked
+                                    Qt.openUrlExternally(model.link);
+                                }
+                                showClickFeedback: true
 
                                 MouseArea {
                                     id: cardMouseArea
@@ -197,51 +202,52 @@ Item {
                                     height: parent.height
 
                                     PlasmaComponents.Label {
-                                        //spacing: 10
+                                        //spacing is an invalid property for Label
 
                                         id: titleText
-                                        MouseArea {
-                                    id: cardMouseArea2
-
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    hoverEnabled: true
-                                    onClicked: {
-                                        // Open the URL of the article when the card is clicked
-                                        Qt.openUrlExternally(model.link);
-                                    }
-                                }
-
 
                                         font.bold: true
                                         font.pointSize: 14
                                         text: model.title
                                         width: parent.width // Set width to the parent's width
                                         wrapMode: Text.WordWrap // Set word wrapping
-                                        
+
+                                        MouseArea {
+                                            id: cardMouseArea2
+
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            hoverEnabled: true
+                                            onClicked: {
+                                                // Open the URL of the article when the card is clicked
+                                                Qt.openUrlExternally(model.link);
+                                            }
+                                        }
+
                                     }
 
                                     PlasmaComponents.Label {
-                                        //verticalAlignment: Text.AlignVCenter // Set vertical alignment
-                                        //spacing: 10
-MouseArea {
-                                    id: cardMouseArea3
-
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    hoverEnabled: true
-                                    onClicked: {
-                                        // Open the URL of the article when the card is clicked
-                                        Qt.openUrlExternally(model.link);
-                                    }
-                                }
-
                                         id: descriptionText
 
                                         height: implicitHeight
                                         text: model.description
                                         width: parent.width // Set width to the parent's width
                                         wrapMode: Text.WordWrap // Set word wrapping
+
+                                        //verticalAlignment: Text.AlignVCenter // Set vertical alignment
+                                        //spacing: 10
+                                        MouseArea {
+                                            id: cardMouseArea3
+
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            hoverEnabled: true
+                                            onClicked: {
+                                                // Open the URL of the article when the card is clicked
+                                                Qt.openUrlExternally(model.link);
+                                            }
+                                        }
+
                                     }
 
                                 }
@@ -350,7 +356,7 @@ MouseArea {
                             onCheckedChanged: {
                                 // Add or remove the feed from the preset when the checkbox is checked or unchecked
                                 if (checked) {
-                                    presetFeedsList.append(feedModel);
+                                    presetFeedsList.push(feedModel);
                                 } else {
                                     for (var i = 0; i < presetFeedsList.length; i++) {
                                         if (presetFeedsList[i] === feedModel) {
@@ -380,7 +386,17 @@ MouseArea {
 
                         text: "Add"
                         onClicked: {
-                            fullRepresentation.addPreset(presetFeedsList, presetNameField.text);
+                            var selectedFeeds = [];
+                            for (var i = 0; i < presetFeedsList.length; i++) {
+                                selectedFeeds.push(presetFeedsList[i]);
+                            }
+                            for (var j = 0; j < allFeedsModel.count; j++) {
+                                var feed = allFeedsModel.get(j);
+                                if (!selectedFeeds.includes(feed.feedModel))
+                                    selectedFeeds.push(feed.feedModel);
+
+                            }
+                            addPreset(selectedFeeds, presetNameField.text);
                             newPreset.visible = false;
                         }
                     }
