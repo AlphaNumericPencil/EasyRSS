@@ -20,7 +20,15 @@ Item {
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
 
-    
+function isAtomFeed(feedUrl) {
+    var request = new XMLHttpRequest();
+    request.open("GET", feedUrl, false);
+    request.send();
+    var xmlContent = request.responseText;
+    return xmlContent.includes('xmlns="' + atomNamespace + '"');
+}
+
+
 function addPreset(presetFeeds, presetName) {
     var presetFeedModels = [];
     for (var i = 0; i < presetFeeds.length; i++) {
@@ -49,7 +57,7 @@ function addPreset(presetFeeds, presetName) {
 
         function addFeed(feedUrl, feedName) {
             // if the feedUrl is atom, handle it differently
-                if (feedUrl.endsWith(".atom")) {
+                if (isAtomFeed(feedUrl)) {
         var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
             source: "' + feedUrl + '"; \
             namespaceDeclarations: "declare default element namespace \'' + atomNamespace + '\';"; \
