@@ -18,7 +18,9 @@ Item {
     property var presetsModel: ListModel {} // A list to store the presets
     property var presetFeedsList: [] // Initialize as an empty JavaScript array
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
+    property string atomNamespace: "http://www.w3.org/2005/Atom"
 
+    
 function addPreset(presetFeeds, presetName) {
     var presetFeedModels = [];
     for (var i = 0; i < presetFeeds.length; i++) {
@@ -47,22 +49,23 @@ function addPreset(presetFeeds, presetName) {
 
         function addFeed(feedUrl, feedName) {
             // if the feedUrl is atom, handle it differently
-            if (feedUrl.endsWith(".atom")) {
-                var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
-        source: "' + feedUrl + '"; \
-        query: "/feed/entry"; \
-        XmlRole { name: "title"; query: "title/string()" } \
-        XmlRole { name: "link"; query: "link/@href/string()" } \
-        XmlRole { name: "description"; query: "summary/string()" } \
-    }', widget);
-                console.log("Adding feed:", feedUrl, feedName, feed);
-                feedsModel.append({
-                    "feedModel": feed,
-                    "feedName": feedName
-                });
-                console.log("FeedsModel count:", feedsModel.count);
-                return ;
-            } else if (feedUrl.endsWith(".rss")) {
+                if (feedUrl.endsWith(".atom")) {
+        var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
+            source: "' + feedUrl + '"; \
+            namespaceDeclarations: "declare default element namespace \'' + atomNamespace + '\';"; \
+            query: "/feed/entry"; \
+            XmlRole { name: "title"; query: "title/string()" } \
+            XmlRole { name: "link"; query: "link/@href/string()" } \
+            XmlRole { name: "description"; query: "summary/string()" } \
+        }', widget);
+        console.log("Adding feed:", feedUrl, feedName, feed);
+        feedsModel.append({
+            "feedModel": feed,
+            "feedName": feedName
+        });
+        console.log("FeedsModel count:", feedsModel.count);
+        return ;
+    } else if (feedUrl.endsWith(".rss")) {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
                 source: "' + feedUrl + '"; \
                 query: "/rss/channel/item"; \
