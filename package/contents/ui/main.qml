@@ -319,6 +319,8 @@ ComboBox {
                     onClicked: {
                         fullRepresentation.addFeed(dialogUrlField.text, dialogNameField.text); // Add a new feed when the button is clicked
                         newRSS.visible = false;
+                        dialogUrlField.remove(0, dialogUrlField.length);
+                        dialogNameField.remove(0, dialogNameField.length);
                     }
                 }
 
@@ -405,6 +407,7 @@ ComboBox {
                             }
                             addPreset(selectedFeeds, presetNameField.text);
                             newPreset.visible = false;
+                            presetNameField.remove(0, presetNameField.length);
                         }
                     }
 
