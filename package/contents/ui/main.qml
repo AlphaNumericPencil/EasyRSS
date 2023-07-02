@@ -136,15 +136,16 @@ Item {
                 }
 
                 ComboBox {
-                    id: presetsComboBox
-
-                    height: addFeedButton.height
-                    model: presetsModel
-                    textRole: i18n("presetName")
-                    onCurrentIndexChanged: {
-                        feedsListView.model = model[currentIndex].presetFeeds;
-                    }
-                }
+    id: presetsComboBox
+    height: addFeedButton.height
+    model: presetsModel
+    textRole: "presetName"
+    onCurrentIndexChanged: {
+        if (currentIndex >= 0 && currentIndex < presetsModel.count) {
+            feedsListView.model = presetsModel.get(currentIndex).presetFeeds;
+        }
+    }
+}
 
             }
 
