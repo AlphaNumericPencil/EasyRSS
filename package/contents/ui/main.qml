@@ -20,13 +20,26 @@ Item {
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
 
-    function isAtomFeed(feedUrl) {
-        var request = new XMLHttpRequest();
-        request.open("GET", feedUrl, false);
-        request.send();
-        var xmlContent = request.responseText;
-        return xmlContent.includes('xmlns="' + atomNamespace + '"');
+function isAtomFeed(feedUrl) {
+    var request = new XMLHttpRequest();
+    request.open("GET", feedUrl, false);
+    request.send();
+    var xmlContent = request.responseText;
+    
+    if (xmlContent.includes('xmlns="')) {
+        // Extract the xmlns field from the atom feed
+        var startIndex = xmlContent.indexOf('xmlns="') + 7;
+        var endIndex = xmlContent.indexOf('"', startIndex);
+        var atomNamespace = xmlContent.slice(startIndex, endIndex);
+        
+        // Set the atomNamespace as the default element namespace
+        XmlListModel.defaultElementNamespace = atomNamespace;
+        
+        return true;
     }
+    
+    return false;
+}
 
     function addPreset(presetFeeds, presetName) {
         var presetFeedModels = [];
