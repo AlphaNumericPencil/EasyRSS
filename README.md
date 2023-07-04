@@ -1,5 +1,5 @@
 # EasyRSS
-### A helpful little RSS Reader plasmoid (non-functional, early development)
+### A helpful little RSS Reader plasmoid (sub-functional, early development)
 Test instructions:
 1. Download
 2. run plasmoidviewer -a ~/path/to/easyRSS/package
