@@ -12,6 +12,7 @@ import org.kde.plasma.plasmoid 2.0
 
 Item {
     //property int itemHeight: 10 // Define the height for each item in the list
+    // Initialize as an empty JavaScript array
 
     id: widget
 
@@ -20,33 +21,29 @@ Item {
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
 
-function isAtomFeed(feedUrl) {
-    var request = new XMLHttpRequest();
-    request.open("GET", feedUrl, false);
-    request.send();
-    var xmlContent = request.responseText;
-    
-    if (xmlContent.includes('xmlns="')) {
-        // Extract the xmlns field from the atom feed
-        var startIndex = xmlContent.indexOf('xmlns="') + 7;
-        var endIndex = xmlContent.indexOf('"', startIndex);
-        var atomNamespace = xmlContent.slice(startIndex, endIndex);
-        
-        // Set the atomNamespace as the default element namespace
-        XmlListModel.defaultElementNamespace = atomNamespace;
-        
-        return true;
+    function isAtomFeed(feedUrl) {
+        var request = new XMLHttpRequest();
+        request.open("GET", feedUrl, false);
+        request.send();
+        var xmlContent = request.responseText;
+        if (xmlContent.includes('xmlns="')) {
+            // Extract the xmlns field from the atom feed
+            var startIndex = xmlContent.indexOf('xmlns="') + 7;
+            var endIndex = xmlContent.indexOf('"', startIndex);
+            var atomNamespace = xmlContent.slice(startIndex, endIndex);
+            // Set the atomNamespace as the default element namespace
+            XmlListModel.defaultElementNamespace = atomNamespace;
+            return true;
+        }
+        return false;
     }
-    
-    return false;
-}
 
     function addPreset(presetFeeds, presetName) {
         var presetFeedModels = [];
         for (var i = 0; i < presetFeeds.length; i++) {
             presetFeedModels.push(presetFeeds[i].feedModel);
         }
-        presetsModel.append({
+        presetsModel.insert(0, {
             "presetFeeds": presetFeedModels,
             "presetName": presetName
         });
@@ -64,25 +61,26 @@ function isAtomFeed(feedUrl) {
         id: presetsModel
     }
 
-
-    // Initialize as an empty JavaScript array
-
     Plasmoid.fullRepresentation: Item {
         id: fullRepresentation
+        Component.onCompleted: {
+        addPreset(feedsModel, "All"); 
+        //currentPreset = "All"; // Set current preset to "All" by default
+}
 
         function addFeed(feedUrl, feedName) {
             // if the feedUrl is atom, handle it differently
             if (isAtomFeed(feedUrl)) {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
-            source: "' + feedUrl + '"; \
-            namespaceDeclarations: "declare default element namespace \'' + atomNamespace + '\';"; \
-            query: "/feed/entry"; \
-            XmlRole { name: "title"; query: "title/string()" } \
-            XmlRole { name: "link"; query: "link/@href/string()" } \
-            XmlRole { name: "description"; query: "summary/string()" } \
-            XmlRole { name: "date"; query: "published/string()" } \
-            XmlRole { name: "author"; query: "author/name/string()" } \
-        }', widget);
+                source: "' + feedUrl + '"; \
+                namespaceDeclarations: "declare default element namespace \'' + atomNamespace + '\';"; \
+                query: "/feed/entry"; \
+                XmlRole { name: "title"; query: "title/string()" } \
+                    XmlRole { name: "link"; query: "link/@href/string()" } \
+                        XmlRole { name: "description"; query: "summary/string()" } \
+                            XmlRole { name: "date"; query: "published/string()" } \
+                                XmlRole { name: "author"; query: "author/name/string()" } \
+                                }', widget);
                 console.log("Adding feed:", feedUrl, feedName, feed);
                 feedsModel.append({
                     "feedModel": feed,
@@ -92,14 +90,14 @@ function isAtomFeed(feedUrl) {
                 return ;
             } else if (feedUrl.endsWith(".rss")) {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
-                source: "' + feedUrl + '"; \
-                query: "/rss/channel/item"; \
-                XmlRole { name: "title"; query: "title/string()" } \
-                XmlRole { name: "link"; query: "link/string()" } \
-                XmlRole { name: "description"; query: "description/string()" } \
-                XmlRole { name: "date"; query: "pubDate/string()" } \
-                XmlRole { name: "author"; query: "author/string()" } \
-            }', widget);
+                        source: "' + feedUrl + '"; \
+                        query: "/rss/channel/item"; \
+                        XmlRole { name: "title"; query: "title/string()" } \
+                            XmlRole { name: "link"; query: "link/string()" } \
+                                XmlRole { name: "description"; query: "description/string()" } \
+                                    XmlRole { name: "date"; query: "pubDate/string()" } \
+                                        XmlRole { name: "author"; query: "author/string()" } \
+                                        }', widget);
                 console.log("Adding feed:", feedUrl, feedName, feed);
                 feedsModel.append({
                     "feedModel": feed,
@@ -109,12 +107,12 @@ function isAtomFeed(feedUrl) {
                 return ;
             } else {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
-                source: "' + feedUrl + '"; \
-                query: "/rss/channel/item"; \
-                XmlRole { name: "title"; query: "title/string()" } \
-                XmlRole { name: "link"; query: "link/string()" } \
-                XmlRole { name: "description"; query: "description/string()" } \
-            }', widget);
+                                source: "' + feedUrl + '"; \
+                                query: "/rss/channel/item"; \
+                                XmlRole { name: "title"; query: "title/string()" } \
+                                    XmlRole { name: "link"; query: "link/string()" } \
+                                        XmlRole { name: "description"; query: "description/string()" } \
+                                        }', widget);
                 console.log("Adding feed:", feedUrl, feedName, feed);
                 feedsModel.append({
                     "feedModel": feed,
@@ -123,6 +121,8 @@ function isAtomFeed(feedUrl) {
                 console.log("FeedsModel count:", feedsModel.count);
                 return ;
             }
+
+            addPreset(feedName, "All"); 
         }
 
         Layout.minimumWidth: label.implicitWidth
@@ -175,19 +175,21 @@ function isAtomFeed(feedUrl) {
                     height: addFeedButton.height
                     model: presetsModel
                     textRole: "presetName"
-onCurrentIndexChanged: {
-    if (currentIndex >= 0 && currentIndex < presetsModel.count) {
-        var preset = presetsModel.get(currentIndex);
-        var presetFeeds = preset.presetFeeds;
-        feedsModel.clear();
-        for (var i = 0; i < presetFeeds.length; i++) {
-            feedsModel.append({
-                "feedModel": presetFeeds[i],
-                "feedName": "" // Provide the feed name here, as it is not available in the preset
-            });
-        }
-    }
-}
+                    onCurrentIndexChanged: {
+                        if (currentIndex >= 0 && currentIndex < presetsModel.count) {
+                            var preset = presetsModel.get(currentIndex);
+                            var presetFeeds = preset.presetFeeds;
+                            feedsModel.clear();
+                            for (var i = 0; i < presetFeeds.length; i++) {
+                                // Provide the feed name here, as it is not available in the preset
+
+                                feedsModel.append({
+                                    "feedModel": presetFeeds[i],
+                                    "feedName": ""
+                                });
+                            }
+                        }
+                    }
                 }
 
             }
@@ -450,10 +452,10 @@ onCurrentIndexChanged: {
                         onClicked: {
                             var selectedFeeds = [];
                             for (var i = 0; i < presetFeedsList.length; i++) {
-                                selectedFeeds.push(presetFeedsList[i]);
+                                selectedFeeds.push(presetFeedsList[i].feedModel);
                             }
-                            for (var j = 0; j < allFeedsModel.count; j++) {
-                                var feed = allFeedsModel.get(j);
+                            for (var j = 0; j < feedsModel.count; j++) {
+                                var feed = feedsModel.get(j);
                                 if (!selectedFeeds.includes(feed.feedModel))
                                     selectedFeeds.push(feed.feedModel);
 
