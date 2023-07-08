@@ -64,8 +64,7 @@ function isAtomFeed(feedUrl) {
         id: presetsModel
     }
 
-    presetsModel: ListModel {
-    }
+
     // Initialize as an empty JavaScript array
 
     Plasmoid.fullRepresentation: Item {
@@ -176,13 +175,19 @@ function isAtomFeed(feedUrl) {
                     height: addFeedButton.height
                     model: presetsModel
                     textRole: "presetName"
-                    onCurrentIndexChanged: {
-                        if (currentIndex >= 0 && currentIndex < presetsModel.count) {
-                            var preset = presetsModel.get(currentIndex);
-                            var presetFeeds = preset.presetFeeds;
-                            feedsListView.model = presetFeeds;
-                        }
-                    }
+onCurrentIndexChanged: {
+    if (currentIndex >= 0 && currentIndex < presetsModel.count) {
+        var preset = presetsModel.get(currentIndex);
+        var presetFeeds = preset.presetFeeds;
+        feedsModel.clear();
+        for (var i = 0; i < presetFeeds.length; i++) {
+            feedsModel.append({
+                "feedModel": presetFeeds[i],
+                "feedName": "" // Provide the feed name here, as it is not available in the preset
+            });
+        }
+    }
+}
                 }
 
             }
@@ -199,7 +204,7 @@ function isAtomFeed(feedUrl) {
                 delegate: Item {
                     property var feedModel: model ? model.feedModel : null
 
-                    width: parent.width
+                    width: contentItem.implicitHeight //parent.width
                     height: contentItem.implicitHeight
 
                     ColumnLayout {
@@ -217,7 +222,7 @@ function isAtomFeed(feedUrl) {
                             delegate: Kirigami.Card {
                                 width: parent.width
                                 height: parent.height
-                                visible: feedModel.status === XmlListModel.Ready // Only display the card when the feed model is ready
+                                visible: feedModel.count > 0 // Only display the card when the feed model has data
                                 showClickFeedback: true
 
                                 MouseArea {
