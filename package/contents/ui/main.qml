@@ -174,6 +174,9 @@ Item {
                     height: addFeedButton.height
                     model: presetsModel
                     textRole: "presetName"
+                    //Set All to be the default preset
+                    currentIndex: 0
+
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0 && currentIndex < presetsModel.count) {
                             // Provide the feed name here, as it is not available in the preset
