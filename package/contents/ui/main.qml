@@ -13,6 +13,7 @@ import org.kde.plasma.plasmoid 2.0
 Item {
     //property int itemHeight: 10 // Define the height for each item in the list
     // Initialize as an empty JavaScript array
+    //currentPreset = "All"; // Set current preset to "All" by default
 
     id: widget
 
@@ -63,10 +64,6 @@ Item {
 
     Plasmoid.fullRepresentation: Item {
         id: fullRepresentation
-        Component.onCompleted: {
-        addPreset(feedsModel, "All"); 
-        //currentPreset = "All"; // Set current preset to "All" by default
-}
 
         function addFeed(feedUrl, feedName) {
             // if the feedUrl is atom, handle it differently
@@ -121,10 +118,9 @@ Item {
                 console.log("FeedsModel count:", feedsModel.count);
                 return ;
             }
-
-            addPreset(feedName, "All"); 
         }
 
+        
         Layout.minimumWidth: label.implicitWidth
         Layout.minimumHeight: label.implicitHeight
         Layout.preferredWidth: 1000 * PlasmaCore.Units.devicePixelRatio
@@ -168,6 +164,9 @@ Item {
                         newPreset.visible = true;
                     }
                 }
+                Component.onCompleted: {
+            addPreset(feedsModel, "All");
+        }
 
                 ComboBox {
                     id: presetsComboBox
@@ -177,12 +176,12 @@ Item {
                     textRole: "presetName"
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0 && currentIndex < presetsModel.count) {
+                            // Provide the feed name here, as it is not available in the preset
+
                             var preset = presetsModel.get(currentIndex);
                             var presetFeeds = preset.presetFeeds;
                             feedsModel.clear();
                             for (var i = 0; i < presetFeeds.length; i++) {
-                                // Provide the feed name here, as it is not available in the preset
-
                                 feedsModel.append({
                                     "feedModel": presetFeeds[i],
                                     "feedName": ""
@@ -383,12 +382,14 @@ Item {
         Popup {
             id: newPreset
 
+            height: 900
+            width: 600
             x: (parent.width - width) / 2 // This will position the Popup in the center of the parent Item horizontally
             y: (parent.height - height) / 2 // This will position the Popup in the center of the parent Item vertically
             visible: false
 
             ColumnLayout {
-                spacing: 100
+                spacing: 50
 
                 PlasmaComponents.Label {
                     id: newPresetLabel
@@ -404,34 +405,30 @@ Item {
 
                     model: feedsModel
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    height: 500 //Layout.fillHeight: true doesn't work for some reason
+                    spacing: 10
 
-                    delegate: RowLayout {
-                        spacing: 500
+                    delegate: CheckBox {
+                        id: feedCheckbox
 
-                        CheckBox {
-                            id: feedCheckbox
-
-                            text: model.feedName
-                            checked: false // by default, none of the feeds are included in the new preset
-                            onCheckedChanged: {
-                                // Add or remove the feed from the preset when the checkbox is checked or unchecked
-                                if (checked) {
-                                    presetFeedsList.push({
-                                        "feedModel": feedModel,
-                                        "feedName": model.feedName
-                                    });
-                                } else {
-                                    for (var i = 0; i < presetFeedsList.length; i++) {
-                                        if (presetFeedsList[i].feedModel === feedModel) {
-                                            presetFeedsList.splice(i, 1);
-                                            break;
-                                        }
+                        text: model.feedName
+                        checked: false // by default, none of the feeds are included in the new preset
+                        onCheckedChanged: {
+                            // Add or remove the feed from the preset when the checkbox is checked or unchecked
+                            if (checked) {
+                                presetFeedsList.push({
+                                    "feedModel": feedModel,
+                                    "feedName": model.feedName
+                                });
+                            } else {
+                                for (var i = 0; i < presetFeedsList.length; i++) {
+                                    if (presetFeedsList[i].feedModel === feedModel) {
+                                        presetFeedsList.splice(i, 1);
+                                        break;
                                     }
                                 }
                             }
                         }
-
                     }
 
                 }
