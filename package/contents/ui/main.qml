@@ -22,6 +22,43 @@ Item {
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
 
+
+    //This function will sort articles into the card listview based on the date and which preset is chosen
+    function sortArticles() {
+        // Clear the list of articles
+        articlesModel.clear();
+        // If the current preset is "All", show all articles
+        if (currentPreset === "All") {
+            for (var i = 0; i < allFeedsModel.count; i++) {
+                for (var j = 0; j < allFeedsModel.get(i).feedModel.count; j++) {
+                    articlesModel.append({
+                        "feedName": allFeedsModel.get(i).feedName,
+                        "title": allFeedsModel.get(i).feedModel.get(j).title,
+                        "link": allFeedsModel.get(i).feedModel.get(j).link,
+                        "description": allFeedsModel.get(i).feedModel.get(j).description,
+                        "date": allFeedsModel.get(i).feedModel.get(j).date,
+                        "author": allFeedsModel.get(i).feedModel.get(j).author
+                    });
+                }
+            }
+        } else {
+            // If the current preset is not "All", show articles from the feeds in the current preset
+            for (var i = 0; i < presetFeedsList.length; i++) {
+                for (var j = 0; j < presetFeedsList[i].feedModel.count; j++) {
+                    articlesModel.append({
+                        "feedName": presetFeedsList[i].feedName,
+                        "title": presetFeedsList[i].feedModel.get(j).title,
+                        "link": presetFeedsList[i].feedModel.get(j).link,
+                        "description": presetFeedsList[i].feedModel.get(j).description,
+                        "date": presetFeedsList[i].feedModel.get(j).date,
+                        "author": presetFeedsList[i].feedModel.get(j).author
+                    });
+                }
+            }
+        }
+    }
+    //end sortArticles
+
     function isAtomFeed(feedUrl) {
         var request = new XMLHttpRequest();
         request.open("GET", feedUrl, false);
@@ -44,13 +81,24 @@ Item {
         for (var i = 0; i < presetFeeds.length; i++) {
             presetFeedModels.push(presetFeeds[i].feedModel);
         }
-        presetsModel.insert(0, {
+        presetsModel.insert(presetFeeds.length, {
             "presetFeeds": presetFeedModels,
             "presetName": presetName
         });
     }
 
-    Plasmoid.icon: 'starred-symbolic'
+    function removePreset(presetName) {
+        for (var i = 0; i < presetsModel.count; i++) {
+            if (presetsModel.get(i).presetName === presetName) {
+                presetsModel.remove(i);
+                break;
+            }
+        }
+    }
+
+
+
+    Plasmoid.icon: "preferences-web-feed-reader"
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
 
     // ListModel to hold multiple XmlListModel's
