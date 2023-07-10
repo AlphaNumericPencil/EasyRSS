@@ -8,7 +8,7 @@
         ],
         "Category": "RSS Reader",
         "Description": "A customizable RSS reading widget!",
-        "Icon": "newspaper",
+        "Icon": "preferences-web-feed-reader",
         "Id": "org.kde.plasma.EasyRSS",
         "Name": "Easy RSS",
         "Version": "1",

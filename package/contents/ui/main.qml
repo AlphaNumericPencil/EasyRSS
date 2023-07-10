@@ -11,22 +11,22 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.plasmoid 2.0
 
 Item {
-    //property int itemHeight: 10 // Define the height for each item in the list
-    // Initialize as an empty JavaScript array
-    //currentPreset = "All"; // Set current preset to "All" by default
-
     id: widget
 
     property var presetsModel // A list to store the presets
-    property var presetFeedsList: []
+    property var presetFeedsList: [] // A list to store the feeds in the current preset
     property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
+    property string currentPreset: "All"
+    property var articlesModel // A list to store the articles to be shown in the card listview
 
+    
 
     //This function will sort articles into the card listview based on the date and which preset is chosen
     function sortArticles() {
-        // Clear the list of articles
-        articlesModel.clear();
+        // Clear the list of articles from the repeater
+        //articlesModel.clear();
+        
         // If the current preset is "All", show all articles
         if (currentPreset === "All") {
             for (var i = 0; i < allFeedsModel.count; i++) {
@@ -57,7 +57,10 @@ Item {
             }
         }
     }
-    //end sortArticles
+    
+    
+
+    
 
     function isAtomFeed(feedUrl) {
         var request = new XMLHttpRequest();
@@ -98,7 +101,7 @@ Item {
 
 
 
-    Plasmoid.icon: "preferences-web-feed-reader"
+    Plasmoid.icon: "newspaper"
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
 
     // ListModel to hold multiple XmlListModel's
@@ -271,6 +274,18 @@ Item {
 
                             model: feedModel
 
+                            //Potential sorting method
+                            // sortFilterProxyModel: SortFilterProxyModel {
+                            //     id: sortFilterProxyModel
+
+                            //     sourceModel: model
+                            //     sortRole: "date"
+                            //     sortOrder: Qt.DescendingOrder
+                            // }
+                        // //implement sortArticles() function
+                        
+
+
                             delegate: Kirigami.Card {
                                 width: parent.width
                                 height: parent.height
@@ -417,7 +432,7 @@ Item {
                 PlasmaComponents.Button {
                     id: addUrlButton
 
-                    text: "Add"
+                    text: "Add" 
                     onClicked: {
                         fullRepresentation.addFeed(dialogUrlField.text, dialogNameField.text); // Add a new feed when the button is clicked
                         newRSS.visible = false;
@@ -511,6 +526,7 @@ Item {
                             addPreset(selectedFeeds, presetNameField.text);
                             newPreset.visible = false;
                             presetNameField.remove(0, presetNameField.length);
+                            sortArticles();
                         }
                     }
 
