@@ -15,29 +15,43 @@ Item {
 
     property var presetsModel // A list to store the presets
     property var presetFeedsList: [] // A list to store the feeds in the current preset
-    property var allFeedsModel: [] // A list to store all feeds (not shown in the provided code)
     property string atomNamespace: "http://www.w3.org/2005/Atom"
     property string currentPreset: "All"
     property var articlesModel // A list to store the articles to be shown in the card listview
+   // ListModel to hold multiple XmlListModel's
+    ListModel {
+        id: feedsModel
+    }
 
+    ListModel {
+        id: presetsModel
+    }
+
+    
+    //We will use this function to check if any of our RSS feeds have new articles
+    function checkForNewArticles() {
+        //This function will check for new articles in the feeds
+        //If there are new articles, it will add them to the list of articles
+        //If there are no new articles, it will do nothing
+    }
     
 
     //This function will sort articles into the card listview based on the date and which preset is chosen
     function sortArticles() {
-        // Clear the list of articles from the repeater
-        //articlesModel.clear();
+        // Clear the list of articles from the repea
+        //feedsListView.clear();
         
-        // If the current preset is "All", show all articles
+        // If the current preset is "All", show all articles using the repeater
         if (currentPreset === "All") {
-            for (var i = 0; i < allFeedsModel.count; i++) {
-                for (var j = 0; j < allFeedsModel.get(i).feedModel.count; j++) {
-                    articlesModel.append({
-                        "feedName": allFeedsModel.get(i).feedName,
-                        "title": allFeedsModel.get(i).feedModel.get(j).title,
-                        "link": allFeedsModel.get(i).feedModel.get(j).link,
-                        "description": allFeedsModel.get(i).feedModel.get(j).description,
-                        "date": allFeedsModel.get(i).feedModel.get(j).date,
-                        "author": allFeedsModel.get(i).feedModel.get(j).author
+            for (var i = 0; i < feedsModel.length; i++) {
+                for (var j = 0; j < feedsModel[i].feedModel.count; j++) {
+                    feedsListView.append({
+                        "feedName": presetFeedsList[i].feedName,
+                        "title": presetFeedsList[i].feedModel.get(j).title,
+                        "link": presetFeedsList[i].feedModel.get(j).link,
+                        "description": presetFeedsList[i].feedModel.get(j).description,
+                        "date": presetFeedsList[i].feedModel.get(j).date,
+                        "author": presetFeedsList[i].feedModel.get(j).author
                     });
                 }
             }
@@ -45,7 +59,7 @@ Item {
             // If the current preset is not "All", show articles from the feeds in the current preset
             for (var i = 0; i < presetFeedsList.length; i++) {
                 for (var j = 0; j < presetFeedsList[i].feedModel.count; j++) {
-                    articlesModel.append({
+                    feedsListView.append({
                         "feedName": presetFeedsList[i].feedName,
                         "title": presetFeedsList[i].feedModel.get(j).title,
                         "link": presetFeedsList[i].feedModel.get(j).link,
@@ -101,18 +115,10 @@ Item {
 
 
 
-    Plasmoid.icon: "newspaper"
+    Plasmoid.icon: "preferences-web-feed-reader"
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
 
-    // ListModel to hold multiple XmlListModel's
-    ListModel {
-        id: feedsModel
-    }
-
-    ListModel {
-        id: presetsModel
-    }
-
+ 
     Plasmoid.fullRepresentation: Item {
         id: fullRepresentation
 
@@ -268,7 +274,6 @@ Item {
                         width: parent.width
                         height: parent.height
                         spacing: 175
-
                         Repeater {
                             id: repeater
 
@@ -282,9 +287,6 @@ Item {
                             //     sortRole: "date"
                             //     sortOrder: Qt.DescendingOrder
                             // }
-                        // //implement sortArticles() function
-                        
-
 
                             delegate: Kirigami.Card {
                                 width: parent.width
