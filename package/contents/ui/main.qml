@@ -13,69 +13,39 @@ import org.kde.plasma.plasmoid 2.0
 Item {
     id: widget
 
-    property var presetsModel // A list to store the presets
+    //property var presetsModel // A list to store the presets
     property var presetFeedsList: [] // A list to store the feeds in the current preset
     property string atomNamespace: "http://www.w3.org/2005/Atom"
     property string currentPreset: "All"
     property var articlesModel // A list to store the articles to be shown in the card listview
+   
    // ListModel to hold multiple XmlListModel's
     ListModel {
         id: feedsModel
     }
 
     ListModel {
+        id: allFeedsModel
+    }
+
+    ListModel {
         id: presetsModel
     }
 
-    
-    //We will use this function to check if any of our RSS feeds have new articles
-    function checkForNewArticles() {
-        //This function will check for new articles in the feeds
-        //If there are new articles, it will add them to the list of articles
-        //If there are no new articles, it will do nothing
-    }
-    
-
     //This function will sort articles into the card listview based on the date and which preset is chosen
-    function sortArticles() {
+    function sortArticles(rssList) {
         // Clear the list of articles from the repea
         //feedsListView.clear();
         
         // If the current preset is "All", show all articles using the repeater
         if (currentPreset === "All") {
-            for (var i = 0; i < feedsModel.length; i++) {
-                for (var j = 0; j < feedsModel[i].feedModel.count; j++) {
-                    feedsListView.append({
-                        "feedName": presetFeedsList[i].feedName,
-                        "title": presetFeedsList[i].feedModel.get(j).title,
-                        "link": presetFeedsList[i].feedModel.get(j).link,
-                        "description": presetFeedsList[i].feedModel.get(j).description,
-                        "date": presetFeedsList[i].feedModel.get(j).date,
-                        "author": presetFeedsList[i].feedModel.get(j).author
-                    });
-                }
-            }
+            // set feedsModel as the model for the repeater
+            rssList.model = allFeedsModel;
         } else {
-            // If the current preset is not "All", show articles from the feeds in the current preset
-            for (var i = 0; i < presetFeedsList.length; i++) {
-                for (var j = 0; j < presetFeedsList[i].feedModel.count; j++) {
-                    feedsListView.append({
-                        "feedName": presetFeedsList[i].feedName,
-                        "title": presetFeedsList[i].feedModel.get(j).title,
-                        "link": presetFeedsList[i].feedModel.get(j).link,
-                        "description": presetFeedsList[i].feedModel.get(j).description,
-                        "date": presetFeedsList[i].feedModel.get(j).date,
-                        "author": presetFeedsList[i].feedModel.get(j).author
-                    });
-                }
-            }
+            rssList.model = feedsModel;
         }
     }
     
-    
-
-    
-
     function isAtomFeed(feedUrl) {
         var request = new XMLHttpRequest();
         request.open("GET", feedUrl, false);
@@ -140,7 +110,11 @@ Item {
                     "feedModel": feed,
                     "feedName": feedName
                 });
-                console.log("FeedsModel count:", feedsModel.count);
+                allFeedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", allFeedsModel.count);
                 return ;
             } else if (feedUrl.endsWith(".rss")) {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
@@ -157,7 +131,11 @@ Item {
                     "feedModel": feed,
                     "feedName": feedName
                 });
-                console.log("FeedsModel count:", feedsModel.count);
+                allFeedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", allFeedsModel.count);
                 return ;
             } else {
                 var feed = Qt.createQmlObject('import QtQuick.XmlListModel 2.0; XmlListModel { \
@@ -172,7 +150,11 @@ Item {
                     "feedModel": feed,
                     "feedName": feedName
                 });
-                console.log("FeedsModel count:", feedsModel.count);
+                allFeedsModel.append({
+                    "feedModel": feed,
+                    "feedName": feedName
+                });
+                console.log("FeedsModel count:", allFeedsModel.count);
                 return ;
             }
         }
@@ -221,6 +203,7 @@ Item {
                         newPreset.visible = true;
                     }
                 }
+                //When we're done making a new preset button, make a new "All" preset by default.
                 Component.onCompleted: {
             addPreset(feedsModel, "All");
         }
@@ -528,7 +511,7 @@ Item {
                             addPreset(selectedFeeds, presetNameField.text);
                             newPreset.visible = false;
                             presetNameField.remove(0, presetNameField.length);
-                            sortArticles();
+                            sortArticles(feedsListView);
                         }
                     }
 
