@@ -19,15 +19,17 @@ Item {
     property string currentPreset: "All"
     property var articlesModel // A list to store the articles to be shown in the card listview
    
-   // ListModel to hold multiple XmlListModel's
+   //ListModel for current feeds
     ListModel {
         id: feedsModel
     }
 
+//  ListModel for all feeds
     ListModel {
         id: allFeedsModel
     }
 
+    // ListModel for presets
     ListModel {
         id: presetsModel
     }
@@ -454,7 +456,7 @@ Item {
                 ListView {
                     id: feedCheckboxesList
 
-                    model: feedsModel
+                    model: allFeedsModel
                     Layout.fillWidth: true
                     height: 500 //Layout.fillHeight: true doesn't work for some reason
                     spacing: 10
