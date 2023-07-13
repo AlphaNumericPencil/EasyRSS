@@ -41,10 +41,12 @@ Item {
         
         // If the current preset is "All", show all articles using the repeater
         if (currentPreset === "All") {
-            // set feedsModel as the model for the repeater
+            // set feedsModel as the model for the feedsListView
             rssList.model = allFeedsModel;
+            //refresh the listview
         } else {
             rssList.model = feedsModel;
+            //feedsListView.model = feedsModel;
         }
         //add 
     }
@@ -110,7 +112,7 @@ Item {
                                 XmlRole { name: "content"; query: "content/string()" } \
                                 XmlRole { name: "thumbnail"; query: "media:thumbnail/@url/string()" } \
                                 }', widget);
-                                }', widget);
+                                
                 console.log("Adding feed:", feedUrl, feedName, feed);
                 feedsModel.append({
                     "feedModel": feed,
@@ -245,7 +247,7 @@ Item {
             ListView {
                 id: feedsListView
 
-                model: feedsModel
+                model: allFeedsModel
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredHeight: parent.height - addFeedRow.height
