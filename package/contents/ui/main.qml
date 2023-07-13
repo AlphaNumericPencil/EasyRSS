@@ -46,6 +46,7 @@ Item {
         } else {
             rssList.model = feedsModel;
         }
+        //add 
     }
     
     function isAtomFeed(feedUrl) {
@@ -65,12 +66,12 @@ Item {
         return false;
     }
 
-    function addPreset(presetFeeds, presetName) {
+    function addPreset(presetFeeds, presetName) { 
         var presetFeedModels = [];
         for (var i = 0; i < presetFeeds.length; i++) {
             presetFeedModels.push(presetFeeds[i].feedModel);
         }
-        presetsModel.insert(presetFeeds.length, {
+        presetsModel.insert(presetFeeds.length-1, {
             "presetFeeds": presetFeedModels,
             "presetName": presetName
         });
@@ -106,6 +107,9 @@ Item {
                         XmlRole { name: "description"; query: "summary/string()" } \
                             XmlRole { name: "date"; query: "published/string()" } \
                                 XmlRole { name: "author"; query: "author/name/string()" } \
+                                XmlRole { name: "content"; query: "content/string()" } \
+                                XmlRole { name: "thumbnail"; query: "media:thumbnail/@url/string()" } \
+                                }', widget);
                                 }', widget);
                 console.log("Adding feed:", feedUrl, feedName, feed);
                 feedsModel.append({
@@ -221,8 +225,8 @@ Item {
 
                     onCurrentIndexChanged: {
                         if (currentIndex >= 0 && currentIndex < presetsModel.count) {
+                            
                             // Provide the feed name here, as it is not available in the preset
-
                             var preset = presetsModel.get(currentIndex);
                             var presetFeeds = preset.presetFeeds;
                             feedsModel.clear();
@@ -264,15 +268,6 @@ Item {
 
                             model: feedModel
 
-                            //Potential sorting method
-                            // sortFilterProxyModel: SortFilterProxyModel {
-                            //     id: sortFilterProxyModel
-
-                            //     sourceModel: model
-                            //     sortRole: "date"
-                            //     sortOrder: Qt.DescendingOrder
-                            // }
-
                             delegate: Kirigami.Card {
                                 width: parent.width
                                 height: parent.height
@@ -297,8 +292,6 @@ Item {
 
                                     RowLayout {
                                         PlasmaComponents.Label {
-                                            //spacing is an invalid property for Label
-
                                             id: titleText
 
                                             font.bold: true
